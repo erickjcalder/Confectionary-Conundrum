@@ -12,6 +12,7 @@ var previous2;
 var temp;
 var count = 0;
 var matchList = [];
+var dropList = [];
 
 setupField();
 
@@ -28,7 +29,6 @@ function setupField() {
 
     checkAll();
     while (matchList.length > 0) {
-        alert("ENEMY SPOTTED");
         clearMatchList();
         checkAll();
     }
@@ -97,8 +97,20 @@ function clickDetect(e) {
             selected.style.backgroundImage = tempImg;
             noSwap.play();
         } else {
-            clearMatchList();
-            swap.play();
+            while (matchList.length != 0) {
+                score += matchList.length;
+                swap.play();
+                plusOne();
+                dropBoard();
+                checkAll();
+            }
+
+            document.getElementById("bruh").innerHTML = "Score: " + score;
+
+            if (score >= 100) {
+                const winTime = document.getElementById("end");
+                winTime.style.display = "block";
+            }
         }
     } else {
         first.style.backgroundColor = "white";
@@ -138,14 +150,10 @@ function checkMatchesH() {
             }
 
             if (count == 2) {
-                selected.style.backgroundColor = "red";
-                previous2.style.backgroundColor = "red";
-                previous.style.backgroundColor = "red";
                 matchList.push(selected);
                 matchList.push(previous);
                 matchList.push(previous2);
             } else if (count >= 3) {
-                selected.style.backgroundColor = "red";
                 matchList.push(selected);
             }
 
@@ -177,15 +185,19 @@ function checkMatchesV() {
             }
 
             if (count == 2) {
-                selected.style.backgroundColor = "red";
-                previous2.style.backgroundColor = "red";
-                previous.style.backgroundColor = "red";
-                matchList.push(selected);
-                matchList.push(previous);
-                matchList.push(previous2);
+                if (!matchList.includes(selected)) {
+                    matchList.push(selected);
+                }
+                if (!matchList.includes(previous)) {
+                    matchList.push(previous);
+                }
+                if (!matchList.includes(previous2)) {
+                    matchList.push(previous2);
+                }
             } else if (count >= 3) {
-                selected.style.backgroundColor = "red";
-                matchList.push(selected);
+                if (!matchList.includes(selected)) {
+                    matchList.push(selected);
+                }
             }
 
             if (count >= 1) {
@@ -208,4 +220,80 @@ function clearMatchList() {
         matchList[i].style.backgroundColor = "white";
     }
     matchList = [];
+}
+
+function dropBoard() {
+    var gapCount = 0;
+    var aboveExists = false;
+
+    for (j = 0; j < 7; j++) {
+        for (i = 8; i >= 0; i--) {
+            gapCount = 1;
+            aboveExists = false;
+            selected = document.getElementById(i + "." + j);
+            if (selected.style.backgroundImage == 'url("./images/plus.png")') {
+                while (i - gapCount >= 0 && !aboveExists) {
+                    above = document.getElementById(i - gapCount + "." + j);
+                    if (
+                        above.style.backgroundImage ==
+                        selected.style.backgroundImage
+                    ) {
+                        gapCount += 1;
+                    } else {
+                        aboveExists = true;
+                    }
+                }
+
+                if (aboveExists) {
+                    selected.style.backgroundImage =
+                        above.style.backgroundImage;
+                    above.style.backgroundImage = "url(./images/plus.png)";
+                } else {
+                    const rand = Math.floor(Math.random() * 6);
+                    selected.style.backgroundImage = pickImage(rand);
+                }
+                selected.style.top = gapCount * 75 + "px";
+                selected.style.transition = "0.50s";
+            }
+        }
+    }
+
+    animateDrop();
+    matchList = [];
+}
+
+function animateDrop() {
+    for (j = 0; j < 7; j++) {
+        for (i = 8; i >= 0; i--) {
+            const selected = document.getElementById(i + "." + j);
+            selected.style.top = "0";
+        }
+    }
+
+    for (j = 0; j < 7; j++) {
+        for (i = 8; i >= 0; i--) {
+            selected = document.getElementById(i + "." + j);
+            selected.style.transition = "0s";
+        }
+    }
+}
+
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+}
+
+function plusOne() {
+    for (j = 0; j < 7; j++) {
+        for (i = 8; i >= 0; i--) {
+            const selected = document.getElementById(i + "." + j);
+            if (matchList.includes(selected)) {
+                selected.style.transition = "0.25s";
+                selected.style.backgroundImage = "url(./images/plus.png)";
+            }
+        }
+    }
 }
